@@ -1,2 +1,2 @@
 # BlockChainNotas
-TP Arquitectua de software
+TP Arquitectura de software
