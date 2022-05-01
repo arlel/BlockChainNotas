@@ -62,10 +62,10 @@ export class NotasContract extends Contract {
 
     @Transaction(false)
     @Returns('string')
-    public async obtenerTodo(ctx: Context): Promise<string> {
+    private async obtenerConsulta(ctx: Context, consulta: string): Promise<string> {
         const notas = [];
 
-        const iterator = await ctx.stub.getStateByRange('', '');
+        let iterator = await ctx.stub.getQueryResult(consulta);
         let result = await iterator.next();
         while (!result.done) {
             const strValue = Buffer.from(result.value.value.toString()).toString('utf8');
@@ -80,6 +80,13 @@ export class NotasContract extends Contract {
             result = await iterator.next();
         }
         return JSON.stringify(notas);
+    }
+
+    @Transaction(false)
+    @Returns('string')
+    public async obtenerPorLegajo(ctx: Context, legajo: number): Promise<string> {
+        let consulta = { 'selector': { 'docType': 'nota', 'alumno': { 'legajo': legajo } } };
+        return await this.obtenerConsulta(ctx, JSON.stringify(consulta));
     }
 
     @Transaction(false)
