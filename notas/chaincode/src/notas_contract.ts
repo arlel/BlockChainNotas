@@ -1,47 +1,37 @@
-import { Context, Contract, Info, Returns, Transaction } from 'fabric-contract-api';
-import stringify from 'json-stringify-deterministic';
-import sortKeysRecursive from 'sort-keys-recursive';
+import { Context, Contract } from 'fabric-contract-api';
 import { Nota, listaNotas } from './nota';
 
-@Info({ title: 'NotasContract', description: 'Smart contract para gestionar Notas' })
 export class NotasContract extends Contract {
 
-    @Transaction()
     public async iniciarLedger(ctx: Context) {
         const notas: Nota[] = listaNotas;
 
         for (let nota of notas) {
-            nota.docType = 'nota';
-            await ctx.stub.putState(nota.id, Buffer.from(stringify(sortKeysRecursive(nota))));
+            await ctx.stub.putState(nota.id, Buffer.from(JSON.stringify(nota)));
             console.info(`Nota ${nota.id} creada`);
         }
     }
 
-    @Transaction()
     public async crearNota(ctx: Context, notaJson: string) {
         const nota: Nota = JSON.parse(notaJson);
-        nota.docType = 'nota'
 
         const existe = await this.comprobarExistencia(ctx, nota.id);
         if (existe) throw new Error(`Ya existe una nota con id ${nota.id}`);
 
-        await ctx.stub.putState(nota.id, Buffer.from(stringify(sortKeysRecursive(nota))));
+        await ctx.stub.putState(nota.id, Buffer.from(JSON.stringify(nota)));
         console.info(`Nota ${nota.id} creada`);
     }
 
-    @Transaction()
     public async modificarNota(ctx: Context, notaJson: string) {
         const nota: Nota = JSON.parse(notaJson);
-        nota.docType = 'nota'
 
         const existe = await this.comprobarExistencia(ctx, nota.id);
         if (!existe) throw new Error(`No existe una nota con id ${nota.id}`);
 
-        await ctx.stub.putState(nota.id, Buffer.from(stringify(sortKeysRecursive(nota))));
+        await ctx.stub.putState(nota.id, Buffer.from(JSON.stringify(nota)));
         console.info(`Nota ${nota.id} modificada`);
     }
 
-    @Transaction()
     public async eliminarNota(ctx: Context, id: string) {
         const existe = await this.comprobarExistencia(ctx, id);
         if (!existe) throw new Error(`No existe una nota con id ${id}`);
@@ -50,9 +40,8 @@ export class NotasContract extends Contract {
         console.info(`Nota ${id} eliminada`);
     }
 
-    @Transaction(false)
-    @Returns('string')
-    public async buscarNota(ctx: Context, id: string): Promise<string> {
+
+    public async consultarNota(ctx: Context, id: string): Promise<string> {
         const bytes = await ctx.stub.getState(id);
         if (!bytes || bytes.length === 0) throw new Error(`Nota ${id} no existe`);
 
@@ -60,8 +49,7 @@ export class NotasContract extends Contract {
         return bytes.toString();
     }
 
-    @Transaction(false)
-    @Returns('string')
+
     private async obtenerConsulta(ctx: Context, consulta: string): Promise<string> {
         const notas = [];
 
@@ -82,16 +70,14 @@ export class NotasContract extends Contract {
         return JSON.stringify(notas);
     }
 
-    @Transaction(false)
-    @Returns('string')
-    public async obtenerPorLegajo(ctx: Context, legajo: number): Promise<string> {
-        let consulta = { 'selector': { 'docType': 'nota', 'alumno': { 'legajo': legajo } } };
+
+    public async consultarPorLegajo(ctx: Context, legajo: string): Promise<string> {
+        let consulta = { 'selector': { 'alumno': { 'legajo': parseInt(legajo) } } };
         return await this.obtenerConsulta(ctx, JSON.stringify(consulta));
     }
 
-    @Transaction(false)
-    @Returns('boolean')
-    public async comprobarExistencia(ctx: Context, id: string): Promise<boolean> {
+
+    private async comprobarExistencia(ctx: Context, id: string): Promise<boolean> {
         const bytes = await ctx.stub.getState(id);
         return bytes && bytes.length > 0;
     }

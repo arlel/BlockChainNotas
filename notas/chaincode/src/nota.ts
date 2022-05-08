@@ -1,25 +1,9 @@
-import { Property, Object } from "fabric-contract-api";
-@Object()
 export class Nota {
-    @Property()
-    public docType?: string;
-
-    @Property()
     public id: string;
-
-    @Property()
     public nota: number;
-
-    @Property()
     public fecha: number;
-
-    @Property()
     public alumno: Alumno;
-
-    @Property()
     public instancia: Instancia;
-
-    @Property()
     public observaciones: string;
 }
 
@@ -40,7 +24,7 @@ export const listaNotas = [
     {
         id: 'NOTA-1',
         nota: 7,
-        fecha: Date.now(),
+        fecha: 1651372465,
         alumno: {
             legajo: 1234,
             nombre: 'Juan',
@@ -56,7 +40,7 @@ export const listaNotas = [
     {
         id: 'NOTA-2',
         nota: 10,
-        fecha: Date.now(),
+        fecha: 1651372465,
         alumno: {
             legajo: 5678,
             nombre: 'María',
